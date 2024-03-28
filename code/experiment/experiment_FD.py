@@ -398,12 +398,6 @@ class experiment_fine_tune(experiment_basic):
             x, y = batch
             x, y = x.to(self.args.device), y.to(self.args.device) 
 
-            # test 
-            # downsamplerate = [1,2,4,8,16,32]
-            # down = np.random.choice(downsamplerate)
-            # x = x[:,:,::down]
-            
-            # x = x + wgn2(x,1)
        
             self.optimizer.zero_grad()
             # forward
@@ -412,10 +406,6 @@ class experiment_fine_tune(experiment_basic):
             for i, (name,param) in enumerate(self.net.named_parameters()):
                 if 'learnable_param' not in name:
                     regularization_loss += self.regularzation(param = param)
-                # regularization_loss += torch.sum(torch.abs(param))
-                
-            # t = [param.detach().numpy() for name,param in self.net.named_parameters()]
-            # n = [name for name,param in self.net.named_parameters()]
             y_pre = self.net(x)               
             loss = self.criterion(y_pre,torch.max(y, 1)[1])  + self.args.lamda * regularization_loss# criterion 和 metric 分开 todo 多分类 
             if self.args.mixup:
@@ -511,17 +501,6 @@ class experiment_fine_tune(experiment_basic):
 
                     self.visualize_weight(epoch)                
                     self.pruning()
-                    # ###### remove mask ###########
-                    # layers = []
-                    # for i, module in enumerate(self.net.children()):
-                    #     if not isinstance(module, nn.Sequential):
-                    #         layers += [l for l in module.children()] if isinstance(module, nn.ModuleList) else [module]         
-                    # parameters_to_prune = ()
-                    # for layer in layers:
-                    #     if isinstance(layer, neural_symbolc_base):   
-                    #         prune.remove(layer.channel_conv, 'weight') ###     
-                    #         prune.remove(layer.down_conv, 'weight')  
-                    #        ############ 
                     self.visualize_weight(epoch+1)
                     if self.prune_count >= 1:
                         self.save_equation()
@@ -535,110 +514,7 @@ class experiment_fine_tune(experiment_basic):
                     break ## 跳出循环
         # loss_test, metrics_test = self.evaluation(test_loader)
         self.early_stopping.load_checkpoint(self.net,self.path)
-        self.save_equation()     
-
-    # def run_with_plot(self):
-        
-    #     # 可以放到外面
-
-    #     train_loader, test_loader, val_loader = self.get_data()
-        
-
-    #     wandb.watch(self.net,log=all) # https://docs.wandb.ai/v/zh-hans/integrations/pytorch
-    #     print("'training start!!'")
-        
-    #     self.prune_count = 0 # 记录剪枝次数
-        
-    #     best_val_loss = np.inf
-    #     best_acc = 0
-        
-    #     self.param_recorder = param_Recorder(self.net)
-        
-    #     for epoch in range(self.args.epoches):
-            
-    #         self.param_recorder.record(epoch, self.net)
-            
-    #         print(f'{epoch} ==> {self.args.epoches}')
-            
-    #         if epoch == 0 and self.args.visualize_weight: # 第一次保存
-    #             self.visualize_weight(epoch)
-            
-    #         epoch_start_time = time.time()
-    #         loss_train, metrics_train = self.train(train_loader)
-    #         training_time = time.time() - epoch_start_time
-            
-    #         loss_val, metrics_val = self.evaluation(val_loader,noise = self.args.noise)
-    #         val_time = time.time() - epoch_start_time - training_time
-    #         self.early_stopping(loss_val,self.net,self.path) # 一般是 loss_val
-
-                        
-    #         loss_test, metrics_test = self.evaluation(test_loader,noise = self.args.noise)
-    #         test_time = time.time() - epoch_start_time - training_time - val_time
-             
-    #         print(f'#time# || training time ==> {training_time:.2f} ||, || val time ==> {val_time:.2f} || , || test time ==> {test_time:.2f} ||')
-    #         print(f'#Loss# || training loss ==> {loss_train:.4f} ||, || val loss ==> {loss_val:.4f} || , || test loss ==> {loss_test:.4f} ||')
-            
-    #         for met in self.args.metric_list:
-    #             print(f'#{met}# || training {met} ==> {metrics_train[met]:.4f} ||, || val {met} ==> {metrics_val[met]:.4f} || , || test {met} ==> {metrics_test[met]:.4f} ||')
-
-    #         print('saving logger')
-            
-    #         # 单独记录吧
-    #         if best_val_loss > loss_val:
-    #             best_val_loss = loss_val
-    #             best_acc = metrics_test['acc']
-    #         metrics = {'loss':loss_train,
-    #                    **metrics_train,
-    #                    'valloss':loss_val,
-    #                    'valacc':metrics_val['acc'],
-    #                    'valf1':metrics_val['f1'],
-    #                    'testloss':loss_test,
-    #                    'testacc': metrics_test['acc'],
-    #                    'testf1': metrics_test['f1'],
-    #                    'bestacc':best_acc                                              
-    #                    }
-    #         wandb.log(metrics)
-    #         if loss_train == np.nan:
-    #              self.early_stopping.early_stop = True
-    #         if self.early_stopping.early_stop:
-                
-    #             self.param_recorder.save(self.path)
-                
-    #             print("Early stopping for purning")
-    #             if self.prune_count < self.args.prune_time: # 还在容许范围内，再进行剪枝
-    #                 self.early_stopping.load_checkpoint(self.net,self.path) # 不需要返回对象 , 读取上一个sparse的pth
-    #                 self.sparse = format((1-self.amount) ** (self.prune_count + 1), '.10f')
-                    
-    #                 self.early_stopping.reset(self.sparse) # 重新count down，更新sparse
-
-
-    #                 self.visualize_weight(epoch)                
-    #                 self.pruning()
-    #                 # ###### remove mask ###########
-    #                 # layers = []
-    #                 # for i, module in enumerate(self.net.children()):
-    #                 #     if not isinstance(module, nn.Sequential):
-    #                 #         layers += [l for l in module.children()] if isinstance(module, nn.ModuleList) else [module]         
-    #                 # parameters_to_prune = ()
-    #                 # for layer in layers:
-    #                 #     if isinstance(layer, neural_symbolc_base):   
-    #                 #         prune.remove(layer.channel_conv, 'weight') ###     
-    #                 #         prune.remove(layer.down_conv, 'weight')  
-    #                 #        ############ 
-    #                 self.visualize_weight(epoch+1)
-    #                 if self.prune_count >= 1:
-    #                     self.save_equation()
-    #                 self.prune_count += 1
-                    
-    #                 best_val_loss = np.inf     
-                                           
-    #             else:
-    #                 self.early_stopping.load_checkpoint(self.net,self.path)
-    #                 self.save_equation()
-    #                 break ## 跳出循环
-    #     # loss_test, metrics_test = self.evaluation(test_loader)
-    #     self.early_stopping.load_checkpoint(self.net,self.path)
-    #     self.save_equation()       
+        self.save_equation()        
 
               
 class experiment_DFN(experiment_fine_tune):
@@ -680,15 +556,6 @@ class experiment_DFN(experiment_fine_tune):
                 amount = self.args.amount,
                 args = self.args)
                 
-        # layers = []
-        # for i, module in enumerate(self.net.children()):
-        #     # if not isinstance(module, nn.Sequential):
-        #         layers += [l for l in module.children()] if isinstance(module, nn.ModuleList) else [module]         
-        # parameters_conv = ()
-        # for layer in layers:
-        #     if isinstance(layer, neural_symbolc_base):                
-        #         parameters_conv = *parameters_conv,(layer.channel_conv,"weight") 
-        #         parameters_conv = *parameters_conv,(layer.down_conv,"weight")
         symbolic_params = []
         learnable_params = []
         for name, param in self.net.named_parameters():
@@ -749,15 +616,6 @@ class experiment_COM(experiment_fine_tune):
         self.net = model_dict[args.model]
         self.net = self.net.to(args.device)
                 
-        # layers = []
-        # for i, module in enumerate(self.net.children()):
-        #     # if not isinstance(module, nn.Sequential):
-        #         layers += [l for l in module.children()] if isinstance(module, nn.ModuleList) else [module]         
-        # parameters_conv = ()
-        # for layer in layers:
-        #     if isinstance(layer, neural_symbolc_base):                
-        #         parameters_conv = *parameters_conv,(layer.channel_conv,"weight") 
-        #         parameters_conv = *parameters_conv,(layer.down_conv,"weight")
         symbolic_params = []
         learnable_params = []
         for name, param in self.net.named_parameters():

@@ -1,6 +1,24 @@
 # TON_TII 
 
-## 程序结构
+
+## 项目简介
+
+这里是项目的简介，包括项目的目的、主要功能等。
+
+## 环境配置
+
+列出运行此项目所需的所有依赖项，以及如何安装它们。
+
+## 如何运行
+
+提供详细的步骤说明如何运行项目。例如：
+
+```bash
+cd code
+python main.py experiment/THU.yaml
+```
+
+## 程序结构 TDOO fix bugs
 
 main.py
 - 主程序入口,可以执行THU 实验 THU_COM的对比实验 以及 注释中的sweep 超参数选择实验。

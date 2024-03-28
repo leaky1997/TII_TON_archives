@@ -22,7 +22,6 @@ import os
 
 # import experiment.experiment_FD as experiment_FD
 from experiment.experiment_FD import experiment_DFN,experiment_COM
-# from experiment.experiment_RUL import experiment_DFN_RUL
 
 import random
 import numpy as np
@@ -39,7 +38,6 @@ sys.path.append("../")
 
 # specific modules
 from model.symbolic_layer import basic_model
-
 
 
 # from utils
@@ -78,19 +76,6 @@ def main(config_dir = 'default.yaml',run_flag = True):
             )
     args = wandb.config # 如果是sweep 模式，他就会选取value中的值 ，例如：'optimizer': {'values': ['adam', 'sgd']} 选sgd
     exp = exp_model_dic[args.exp](args)
-
-    # state_dict = torch.load('/home/richie_thu/_Richie_project/Deep symbolic net/rul prediction/save_dir/_name:THU10_4/' +
-    #                         '0.8100000000checkpoint.pth')
-    # exp.net.symbolic_transform_layer[0].channel_conv.weight.data = state_dict['symbolic_transform_layer.0.channel_conv.weight_orig']
-    # exp.net.symbolic_transform_layer[0].down_conv.weight.data = state_dict['symbolic_transform_layer.0.down_conv.weight_orig']
-    # exp.net.symbolic_transform_layer[1].channel_conv.weight.data = state_dict['symbolic_transform_layer.1.channel_conv.weight_orig']
-    # exp.net.symbolic_transform_layer[1].down_conv.weight.data = state_dict['symbolic_transform_layer.1.down_conv.weight_orig']
-    # exp.net.symbolic_transform_layer[2].channel_conv.weight.data = state_dict['symbolic_transform_layer.2.channel_conv.weight_orig']
-    # exp.net.symbolic_transform_layer[2].down_conv.weight.data = state_dict['symbolic_transform_layer.2.down_conv.weight_orig']
-    # exp.net.symbolic_feature_layer[0].channel_conv.weight.data = state_dict['symbolic_feature_layer.0.channel_conv.weight_orig']
-    # exp.net.symbolic_feature_layer[0].down_conv.weight.data = state_dict['symbolic_feature_layer.0.down_conv.weight_orig']
-    # exp.net.symbolic_regression_layer[0].channel_conv.weight.data = state_dict['symbolic_regression_layer.0.channel_conv.weight_orig']
-    # exp.net.symbolic_regression_layer[0].down_conv.weight.data = state_dict['symbolic_regression_layer.0.down_conv.weight_orig']
     if run_flag:
         
         
@@ -108,7 +93,6 @@ def main_swap(config_dir = 'default.yaml',run_flag = True,agent_id = False):
     # setup_seed(args.seed)
     exp_model_dic = {'default':experiment_DFN,
                      'THU_FD':experiment_DFN,
-                    #  'XJTU_RUL':experiment_DFN_RUL,
                      'THU_COM':experiment_COM,
                      'THU_TON_swap4':experiment_DFN,
                      'THU_TON_swap_ini':experiment_DFN,
@@ -126,11 +110,6 @@ def main_swap(config_dir = 'default.yaml',run_flag = True,agent_id = False):
     
 
     def run(config=None):
-        
-        # CONFIG.update(wandb.config)
-        # whole_config = Namespace(**CONFIG)
-        # exp_model_dic[whole_config.exp](whole_config).run()
-        
         with wandb.init(  #好像会被忽视掉
                config=None,
                 name = 'sweep'):
@@ -151,9 +130,9 @@ if __name__ == "__main__":
   
     meta_parser = ArgumentParser(description='symbolic net for PHM')
 
-    # meta_parser.add_argument('--config_dir', type=str, default='./code/experiment/THU.yaml', help='THU,XJTU')
+    meta_parser.add_argument('--config_dir', type=str, default='./code/experiment/THU.yaml', help='THU,XJTU')
     
-    meta_parser.add_argument('--config_dir', type=str, default='./code/experiment/THU_COM.yaml', help='THU,XJTU')
+    # meta_parser.add_argument('--config_dir', type=str, default='./code/experiment/THU_COM.yaml', help='THU,XJTU')
     
     config_dir = meta_parser.parse_args().config_dir
     main(config_dir,run_flag = True)
@@ -183,16 +162,3 @@ if __name__ == "__main__":
     # multiple  sweep
     # grid_search_main_multiple(config_dir,'richie_team/test3/b4ogc5qm')
     # update_config()
-#%% generalization
-    # config_dir = './experiment/l1_config_sweep.yaml'
-    # data_dir = "/home/richie_thu/_Richie_project/dataset/"
-    # data_list = ["CWRU_0hp_10.mat","CWRU_1hp_10.mat","CWRU_2hp_10.mat","CWRU_3hp_10.mat"]
-    # data_list = [data_dir + d for d in data_list]
-    # for data_dir in data_list:
-    #     main()
-    
-#%% reload
-    # meta_parser = ArgumentParser(description='symbolic net for PHM')
-    # meta_parser.add_argument('--config_dir', type=str, default='./experiment/base_set.yaml', help='change your own config')
-    # config_dir = meta_parser.parse_args().config_dir
-    # main_load(config_dir)

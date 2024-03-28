@@ -123,10 +123,7 @@ class wave_filters(nn.Module):
         self.register_parameter(f'learnable_param_f_c', self.f_c)   
         self.register_parameter(f'learnable_param_f_b', self.f_b)      
         
-        # self.shrink = adaptive_shrink(0.1,0.1).to(self.device)         
-        # self.filter = self.filter_generator()
-        
-        # self.IN = nn.InstanceNorm1d(num_features=in_channels,affine=False).to(self.device)
+
         
     def filter_generator(self,shape):
         '''
@@ -152,9 +149,6 @@ class wave_filters(nn.Module):
         
     def forward(self,x):
         
-        # b,c,l
-        # x = self.IN(x)
-        
         batch_size, channel,lenth = x.shape
         
         self.filter = self.filter_generator(x.shape)
@@ -163,7 +157,6 @@ class wave_filters(nn.Module):
 
         fre =  fre * self.filter
         
-        # fre = self.shrink(fre)
         
         x_hat = torch.fft.irfft(fre, dim=2, norm='ortho')
         
