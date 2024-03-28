@@ -20,6 +20,9 @@ python main.py experiment/THU.yaml
 
 ## 程序结构 TDOO fix bugs
 
+
+
+
 main.py
 - 主程序入口,可以执行THU 实验 THU_COM的对比实验 以及 注释中的sweep 超参数选择实验。
 - main函数中会根据args参数选择对应的实验类，包括DFN(原始的名字) 以及COM对比实验的类。

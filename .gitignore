@@ -150,3 +150,4 @@ model/PyTorchWavelets-master/assets/runtime_versus_signal_length.pdf
 *.Identifier
 *.webp
 reference/
+model/comparision_net.py
