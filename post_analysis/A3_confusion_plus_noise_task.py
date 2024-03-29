@@ -56,8 +56,8 @@ def plot_confusion_and_gen_noise_data(exp_model_dic, config_dir, model_state_pat
     """
     results = {}
     for model_key, state_dict_path in model_state_paths.items():
-        
-        args, exp, testx, testy, confusion_matrix = plot_confusion_matrix(exp_model_dic, config_dir, plot_dir, model_key, state_dict_path)
+        args, exp = create_experiment(exp_model_dic, config_dir, model_key)
+        args, exp, testx, testy, confusion_matrix = plot_confusion_matrix(plot_dir, model_key, state_dict_path)
         accuracy_list = record_accuracy(noise_dblist, plot_dir, model_key, args, exp, testx, testy)
         
         results[model_key] = {'confusion_matrix': confusion_matrix.cpu().numpy(), 'accuracy_list': accuracy_list}
@@ -78,15 +78,11 @@ def record_accuracy(noise_dblist, plot_dir, model_key, args, exp, testx, testy):
     pd.DataFrame(accuracy_list, columns=['Accuracy']).to_csv(os.path.join(plot_dir, f'{model_key}_accuracy_list.csv'), index=False)
     return accuracy_list
 
-def plot_confusion_matrix(exp_model_dic, config_dir, plot_dir, model_key, state_dict_path):
+
+
+
+def plot_confusion_matrix(args, exp, plot_dir, model_key, state_dict_path):
     ################### could be update for next version ################
-    if model_key == 'AFN':
-        config_dir = config_dir['AFN']
-    else:
-        config_dir = config_dir['COM']
-    args = setup_config(config_dir)
-    args.model = model_key
-    exp = exp_model_dic[args.exp](args)
 
     _, test_loader, _ = exp.get_data()
     testx, testy = test_loader.dataset.x, test_loader.dataset.y
@@ -100,6 +96,16 @@ def plot_confusion_matrix(exp_model_dic, config_dir, plot_dir, model_key, state_
     heatmap_confusion(confusion_matrix.cpu().numpy(), plot_dir=plot_dir, name=model_key)
     pd.DataFrame(confusion_matrix.cpu().numpy()).to_csv(os.path.join(plot_dir, f'{model_key}_confusion_matrix.csv'), index=False)
     return args,exp,testx,testy,confusion_matrix
+
+def create_experiment(exp_model_dic, config_dir, model_key):
+    if model_key == 'AFN':
+        config_dir = config_dir['AFN']
+    else:
+        config_dir = config_dir['COM']
+    args = setup_config(config_dir)
+    args.model = model_key
+    exp = exp_model_dic[args.exp](args)
+    return args,exp
 
 
 def plot_accuracy_noise_effect(accuracy_dicts, snr_levels, plot_dir='./', file_name='accuracy_vs_snr.pdf'):

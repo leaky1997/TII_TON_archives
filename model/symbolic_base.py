@@ -104,11 +104,6 @@ class wave_filters(nn.Module):
     
     '''
     TII version
-    
-    $\psi(n)=A exp(-w^2 n^2)exp(j B n)$
-
-    $\cal F[\psi(n)] = A\frac{\sqrt{\pi}e^{-(\omega-2\pi f)^{2}/(4w^{2})}}{\sqrt{w^{2}}} = e^{-(\omega-2\pi f_c)^{2}/(4f_b ^{2})}$     
-    
     '''
     def __init__(self, in_channels=4, signal_length=1024, args=None):
         super().__init__()
@@ -124,7 +119,8 @@ class wave_filters(nn.Module):
 
         nn.init.normal_(self.f_c, mean=args.f_c_mu, std=args.f_c_sigma)
         nn.init.normal_(self.f_b,  mean=args.f_b_mu, std=args.f_b_sigma)
- 
+        self.register_parameter(f'learnable_param_f_c', self.f_c)   
+        self.register_parameter(f'learnable_param_f_b', self.f_b)       
         
 
         
@@ -167,7 +163,38 @@ class wave_filters(nn.Module):
         
         return x_hat
                 
+class frequency_global_operation(nn.Module):
+    def __init__(self,
+                 length=1024, fs = 25600,
+                 type = 'fre_normal',device = 'cuda'
+                 ) -> None:
+        super().__init__()
+        
+        self.length = length//2 if length//2 == 0 else length//2 +1
+        
+        self.x = torch.linspace(0, 0.5, self.length).to(device)    # 0-0.5的归一化频率范围
+        self.type = type
+        self.device = device
+        
+        
 
+        self.to(device)
+        self.set_weight()
+        
+    def set_weight(self):
+        self.weight = nn.Parameter(torch.randn(self.length, dtype=torch.float32))
+        
+    
+    # def set_attention(self):
+    
+    def forward(self,x):
+        # b,c,l
+        c,lenth,device = *x.shape[-2:],x.device
+        x = torch.fft.rfft(x, dim=2, norm='ortho') # 
+        x =  x * self.weight.softmax(dim=-1)
+        x = torch.fft.irfft(x, dim=2, norm='ortho')
+        x = x.view(-1, c, lenth).real
+        return x     
     
 KERNEL_SIZE = 49 
 FRE = 10 
@@ -175,9 +202,65 @@ DEVICE = 'cuda'
 STRIDE = 1
 T = torch.linspace(-KERNEL_SIZE/2,KERNEL_SIZE/2, KERNEL_SIZE).view(1,1,KERNEL_SIZE).to(DEVICE) # 暂定cuda 
 
+class Swish(nn.Module):
+	def __init(self,inplace=True):
+		super(Swish,self).__init__()
+		self.inplace=inplace
+	def forward(self,x):
+		if self.inplace:
+			x.mul_(torch.sigmoid(x))
+			return x
+		else:
+			return x*torch.sigmoid(x)
 
+def Morlet(t):
+    C = pow(math.pi, 0.25)
+    f = FRE
+    w = 2 * math.pi * f    
+    y = C * torch.exp(-torch.pow(t, 2) / 2) * torch.cos(w * t)
+    return y
 
+def Laplace(t):
+    a = 0.08
+    ep = 0.03
+    tal = 0.1
+    f = FRE
+    w = 2 * math.pi * f
+    q = torch.tensor(1 - pow(ep, 2))
+    y = a * torch.exp((-ep / (torch.sqrt(q))) * (w * (t - tal))) * (-torch.sin(w * (t - tal)))
+    return y
 
+class convlutional_operator(nn.Module):
+    '''
+    conv_sin
+    conv_exp
+    Morlet
+    Laplace
+    '''
+    def __init__(self, kernel_op = 'conv_sin',
+                 dim = 1, stride = STRIDE,
+                 kernel_size = KERNEL_SIZE,device = 'cuda',
+                 ) -> None:
+        super().__init__()
+        # length = x.shape[-1]
+        self.affline = nn.InstanceNorm1d(num_features=dim,affine=True).to(device)
+        op_dic = {'conv_sin':torch.sin,
+                  'conv_sin2':lambda x: torch.sin(x**2),
+                  'conv_exp':torch.exp,
+                  'conv_exp2':lambda x: torch.exp(x**2),
+                  'Morlet':Morlet,
+                  'Laplace':Laplace}
+        self.op = op_dic[kernel_op]
+        self.stride = stride
+        self.t = torch.linspace(-math.pi/2,math.pi/2, kernel_size).view(1,1,kernel_size).to(device) # 暂定cuda 
+        self.kernel_size = kernel_size
+        
+    def forward(self,x):
+
+        self.aff_t = self.affline(self.t)
+        self.weight = self.op(self.aff_t)
+        conv = F.conv1d(x,self.weight, stride=self.stride, padding=(self.kernel_size-1)//2, dilation=1, groups=1)# todo add stride B,Cout,L-K+1        
+        return conv
 
 class signal_filter_(nn.Module):
     '''

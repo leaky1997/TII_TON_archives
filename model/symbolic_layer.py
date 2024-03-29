@@ -14,10 +14,10 @@ import torch.nn.utils.prune as prune
 import sys
 import copy
 sys.path.append("../")
-sys.path.append("./code")
+# sys.path.append("./code")
 
 # specific modules
-from model.symbolic_base import symbolic_base,convlutional_operator,frequency_operation
+from .symbolic_base import symbolic_base,convlutional_operator,frequency_operation
 
 from sympy import Matrix, Function,simplify
 from sympy import hadamard_product, HadamardProduct, MatrixSymbol

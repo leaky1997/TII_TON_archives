@@ -3,26 +3,87 @@
 
 ## 项目简介
 
-这里是项目的简介，包括项目的目的、主要功能等。
+TON_TII 是一个旨在构建完全可解释的诊断模型的项目。该项目通过深度学习和符号回归技术，提供了一种新颖的方法来理解和解释模型的决策过程。这种方法特别适用于需要高度透明性和解释性的应用场景，如医疗诊断、故障检测等
 
 ## 环境配置
 
-列出运行此项目所需的所有依赖项，以及如何安装它们。
+该项目使用 `conda` 管理依赖。请确保您已安装 [Anaconda](https://www.anaconda.com/products/individual) 或 [Miniconda](https://docs.conda.io/en/latest/miniconda.html)，然后运行以下命令来创建并激活一个包含所有依赖的环境：
+
+```bash
+conda create --name ton_tii_env --file requirements.txt
+```
+大部分环境不是必备的,
+pytorch
 
 ## 如何运行
 
-提供详细的步骤说明如何运行项目。例如：
-
 ```bash
-cd code
 python main.py experiment/THU.yaml
 ```
 
 ## 程序结构 TDOO fix bugs
+- data_dir/: 包含数据加载器和数据文件。
+- experiment/: 包含实验配置文件和实验脚本。
+- figs/: 存放生成的图像。
+- model/: 包含模型定义文件。
+- plot_dir/: 存放生成的绘图文件。
+- post_analysis/: 包含后处理和分析脚本。
+- reference/: 包含参考文献或相关资料。
+- save_dir/: 存放训练好的模型和其他持久化结果。
+- utils/: 包含实用工具和辅助函数。
+- main.py: 项目的主入口脚本。
+
+TON_TII/
+├── data_dir/
+│   ├── __pycache__/
+│   ├── __init__.py
+│   ├── data_loader.py
+│   └── Thu10_down.mat
+├── experiment/
+│   ├── __pycache__/
+│   ├── __init__.py
+│   ├── experiment_FD.py
+│   ├── THU_COM.yaml
+│   ├── THU.yaml
+│   ├── THUswap_ini.yaml
+│   ├── THUswap_lr.yaml
+│   └── THUswap_scale.yaml
+├── figs/
+├── model/
+│   ├── __pycache__/
+│   ├── comparision_net.py
+│   ├── symbolic_base.py
+│   ├── symbolic_layer.py
+│   ├── test.ipynb
+├── plot_dir/
+├── post_analysis/
+│   ├── __pycache__/
+│   ├── 6_feature/
+│   ├── 7_signal/
+│   ├── __init__.py
+│   ├── A1_plot_config.py
+│   ├── A2_line_plot_fromWB.py
+│   ├── A3_confusion_plus_noise_task.py
+│   ├── A4_plot_filter.py
+│   ├── A5_signal_vis.py
+│   ├── A6_features.py
+│   ├── A7_hyperparameter.py
+│   ├── analysis_conference_version.ipynb
+│   ├── analysis_TII_archive.ipynb
+│   ├── analysis_TII_version.ipynb
+│   ├── init.csv
+│   ├── lr.csv
+│   ├── params_trainedby0.00001.csv
+│   ├── params.csv
+│   ├── scale.csv
+│   └── test.ipynb
+├── reference/
+├── save_dir/
+├── utils/
+└── main.py
 
 
-
-
+## geiBUG
 main.py
 - 主程序入口,可以执行THU 实验 THU_COM的对比实验 以及 注释中的sweep 超参数选择实验。
 - main函数中会根据args参数选择对应的实验类，包括DFN(原始的名字) 以及COM对比实验的类。
@@ -51,7 +112,7 @@ experiment_DFN
 - 9. 保存equation 的方法， 这个是历史遗留问题。
 - 10. 这个字符串还是挺帅的![alt text](image-1.png)
 - 11. 剪枝算法，其实应该现有基础模型，再独立剪枝的类比较方便，所以这一版可以废弃。
-- 12. generalization 的类 继承与DFN ，但是单个数据集也够了，没有
+- 12. generalization 的类 继承与DFN ，但是单个数据集也够了。
 
 symbolic_layer
 ..
