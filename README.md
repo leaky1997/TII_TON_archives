@@ -32,6 +32,7 @@ python main.py experiment/THU.yaml
 - utils/: Contains utilities and helper functions.
 - main.py: The main entry script of the project.
 
+```
 TON_TII/
 ├── data_dir/
 │   ├── __pycache__/
@@ -80,3 +81,4 @@ TON_TII/
 ├── save_dir/
 ├── utils/
 └── main.py
+```
